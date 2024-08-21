@@ -49,5 +49,8 @@
     "name": "multi-content-type-relation",
     "description": "Description of multi-content-type-relation plugin",
     "kind": "plugin"
+  },
+  "publishConfig": {
+    "registry": "https://www.npmjs.com/package/multi-content-type-relation"
   }
 }
