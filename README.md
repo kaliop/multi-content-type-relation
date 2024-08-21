@@ -12,12 +12,30 @@
 
 ## Installation
 
-Install the plugin in your Strapi project (Until npmjs publication, install as submodule)
-
-After successful installation you have to rebuild the admin UI so it'll include this plugin. To rebuild and restart Strapi run:
+Install the plugin in your Strapi project
 
 ```bash
-npm run build
+npm install multi-content-type-relation
+```
+
+After installation, enable the plugin in your config file
+
+```js
+// config/plugins.js
+
+module.exports = () => ({
+  "multi-content-type-relation": {
+    enabled: true,
+    config: {
+      recursive: {
+        enabled: true,
+        maxDepth: 2,
+      },
+      debug: false,
+    },
+  },
+  // .. other plugins
+});
 ```
 
 The plugin should now appear in the **Settings** section of your Strapi app
@@ -25,6 +43,15 @@ The plugin should now appear in the **Settings** section of your Strapi app
 ## Usage
 
 This plugin allows you to create a custom field inside any content type you want. This custom field will allow you, after some configuration in the **content type builder** to select multiple content types in the contribution
+
+Configuring a MRCT field by selecting content types you want to link
+![](https://i.imgur.com/J1cCGKM.png)
+
+Advanced settings Tab
+![](https://i.imgur.com/ik75kGH.png)
+
+Usage from contribution side
+<video src="https://i.imgur.com/UDz7pUh.mp4"></video>
 
 ## Configuration
 
