@@ -46,6 +46,10 @@ If, for some reasons, you want to hydrate the relations of the relations of the 
 
 This setting show debug log of the plugin for better understanding
 
+## Submit an issue
+
+You can use github issues to raise an issue about this plugin
+
 ## Contributing
 
 Feel free to fork and make a pull request of this plugin !
