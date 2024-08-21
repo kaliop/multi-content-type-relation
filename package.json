@@ -1,6 +1,6 @@
 {
   "name": "multi-content-type-relation",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "This is the description of the plugin.",
   "strapi": {
     "name": "multi-content-type-relation",
@@ -24,14 +24,14 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^5.3.4",
     "styled-components": "^5.3.6",
-    "typescript": "5.0.4"
+    "typescript": "^5.0.4"
   },
   "peerDependencies": {
+    "@strapi/strapi": "^4.13.3",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0",
     "react-router-dom": "^5.3.4",
-    "styled-components": "^5.3.3",
-    "@strapi/strapi": "^4.13.3"
+    "styled-components": "^5.3.3"
   },
   "author": {
     "name": "A Strapi developer"
