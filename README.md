@@ -51,7 +51,8 @@ Advanced settings Tab
 ![](https://i.imgur.com/ik75kGH.png)
 
 Usage from contribution side
-<video src="https://i.imgur.com/UDz7pUh.mp4"></video>
+
+https://i.imgur.com/UDz7pUh.mp4
 
 ## Configuration
 
