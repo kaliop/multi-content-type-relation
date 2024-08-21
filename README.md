@@ -12,11 +12,7 @@
 
 ## Installation
 
-Install the plugin in your Strapi project.
-
-```bash
-npm install @kaliop/multi-content-type-relation --save
-```
+Install the plugin in your Strapi project (Until npmjs publication, install as submodule)
 
 After successful installation you have to rebuild the admin UI so it'll include this plugin. To rebuild and restart Strapi run:
 
