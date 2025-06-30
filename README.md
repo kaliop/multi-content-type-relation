@@ -1,6 +1,6 @@
 <div align="center">
 <h1>Strapi Multi Content Type Relation</h1>
-	
+
 <p style="margin-top: 0;">Create deep relations in the contribution between content types.</p>
 
 </div>
@@ -10,12 +10,24 @@
 - **Required, minimum, maximum** validators for the custom field
 - Seamless UI integration with **Strapi Design System**
 
+## ⚠️ Compatibility with Strapi versions
+
+This branch 1.X is the branch for the version 4 of Strapi. 
+
+Master is the current branch for version 5 of Strapi
+
+| Plugin version | Strapi version |
+| -------------- | -------------- |
+| 2.x.x          | ≥ 5.0.0        |
+| 1.x.x          | ≥ 4.4          |
+	
+
 ## Installation
 
 Install the plugin in your Strapi project
 
 ```bash
-npm install multi-content-type-relation
+npm install multi-content-type-relation@1
 ```
 
 After installation, enable the plugin in your config file
