@@ -22,7 +22,7 @@ export type SelectedEntry = {
 
 export type FormattedStrapiEntry = {
   uid: string
-  id: string
+  documentId: string
 }
 
 export type Configuration = {
@@ -34,10 +34,8 @@ export type Configuration = {
 }
 
 export type AnyEntity = {
-  id: number | string
-  attributes: {
-    [key: string]: any
-  }
+  documentId: number | string
+  [key: string]: any
 }
 
 export type StrapiResponse = {

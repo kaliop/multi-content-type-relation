@@ -114,7 +114,7 @@ const MainInput = ({ name, error, description, onChange, value, labelAction, lab
               label='test'
               placeholder="Type a term to search"
               required={required}
-              hint={hint}
+              // hint={hint}
               error={inputError}
               value={keyword}
               onChange={(e: any) => setKeyword(e.target.value)}

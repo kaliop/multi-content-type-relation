@@ -32,13 +32,14 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       const uid = mapping[contentType].uid
 
       return strapi
-        .entityService!.findMany(uid, {
+        .documents(uid).findMany({
           filters: {
             [mapping[contentType].searchableField]: {
               $containsi: keyword
             }
           },
-          locale
+          locale,
+          status: "published"
         })
         .then((results) => {
           let contents = Array.isArray(results) ? results : typeof results === "object" && results ? [results] : []
@@ -67,7 +68,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const promises = entries.map((entry) => {
       return strapi
-        .entityService!.findOne(entry.uid as UID.ContentType, entry.id, { populate: "deep" })
+        .documents(entry.uid as any).findOne({documentId: entry.documentId, populate: '*', status: 'published'})
         .then((result) => {
           return {
             uid: entry.uid,

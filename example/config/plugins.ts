@@ -4,8 +4,9 @@ export default () => ({
         config: {
             recursive: {
                 enabled: true,
-                maxDepth: 1
-            }
+                maxDepth: 1,
+            },
+            debug: true
         }
     }
 });

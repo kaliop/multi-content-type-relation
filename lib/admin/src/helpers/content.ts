@@ -34,7 +34,7 @@ export const fetchMatchingContent = async (
 export const formatToStrapiField = (entries: SelectedEntry[]) => {
   if (entries.length === 0) return ""
 
-  return JSON.stringify(entries.map((entry) => ({ uid: entry.uid, id: entry.item.id, MRCT: true })).filter(Boolean))
+  return JSON.stringify(entries.map((entry) => ({ uid: entry.uid, documentId: entry.item.documentId, MRCT: true })).filter(Boolean))
 }
 
 export const validateCurrentRelations = async (entries: FormattedStrapiEntry[]) => {
