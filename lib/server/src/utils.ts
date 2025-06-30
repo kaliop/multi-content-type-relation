@@ -1,14 +1,16 @@
-import { Configuration } from "./interface"
+import { Configuration } from './interface';
 
 export const getPluginConfiguration = (): Configuration => {
-  const pluginConfiguration = strapi.config.get("plugin::multi-content-type-relation") as Configuration
+  const pluginConfiguration = strapi.config.get(
+    'plugin::multi-content-type-relation'
+  ) as Configuration;
 
-  return pluginConfiguration
-}
+  return pluginConfiguration;
+};
 export const log = (message: string) => {
-  const { debug } = getPluginConfiguration()
+  const { debug } = getPluginConfiguration();
 
   if (debug) {
-    console.log(`[MCTR DEBUG] ${message}`)
+    console.log(`[MCTR DEBUG] ${message}`);
   }
-}
+};

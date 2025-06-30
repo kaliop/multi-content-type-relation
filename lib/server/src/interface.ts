@@ -1,48 +1,48 @@
 export type StrapiContentTypeDefinition = {
-  collectionName: string
+  collectionName: string;
   info: {
-    name: string
-    description: string
-    singularName: string
-    pluralName: string
-    displayName: string
-  }
-  attributes: Record<string, unknown>
-}
+    name: string;
+    description: string;
+    singularName: string;
+    pluralName: string;
+    displayName: string;
+  };
+  attributes: Record<string, unknown>;
+};
 
 export type SelectedEntry = {
-  displayName: string
-  searchableField: string
-  uid: string
+  displayName: string;
+  searchableField: string;
+  uid: string;
   item: {
-    id: string
-    [key: string]: any
-  }
-}
+    id: string;
+    [key: string]: any;
+  };
+};
 
 export type FormattedStrapiEntry = {
-  uid: string
-  documentId: string
-}
+  uid: string;
+  documentId: string;
+};
 
 export type Configuration = {
   recursive: {
-    enabled: boolean
-    maxDepth: number
-  }
-  debug: boolean
-}
+    enabled: boolean;
+    maxDepth: number;
+  };
+  debug: boolean;
+};
 
 export type AnyEntity = {
-  documentId: number | string
-  [key: string]: any
-}
+  documentId: number | string;
+  [key: string]: any;
+};
 
 export type StrapiResponse = {
-  data: AnyEntity | AnyEntity[]
-}
+  data: AnyEntity | AnyEntity[];
+};
 
 export type Context = {
-  configuration: Configuration
-  publicationState: "live" | "preview"
-}
+  configuration: Configuration;
+  publicationState: 'live' | 'preview';
+};

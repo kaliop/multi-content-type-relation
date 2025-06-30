@@ -1,60 +1,75 @@
 import { getFetchClient } from '@strapi/strapi/admin';
 
-import pluginId from "../pluginId"
-import { FormattedStrapiEntry, MatchingContent, MatchingContentResponse, SelectedEntry } from "../interface"
+import pluginId from '../pluginId';
+import {
+  FormattedStrapiEntry,
+  MatchingContent,
+  MatchingContentResponse,
+  SelectedEntry,
+} from '../interface';
 
 export const fetchMatchingContent = async (
   keyword: string,
   contentTypes: string,
   locale: string
 ): Promise<MatchingContentResponse> => {
-  const { post } = getFetchClient()
+  const { post } = getFetchClient();
   const response = await post(`/${pluginId}/get-content`, {
-    contentTypes: contentTypes.split(","),
+    contentTypes: contentTypes.split(','),
     keyword,
-    locale
-  })
+    locale,
+  });
 
-  const data = response.data as MatchingContent[]
+  const data = response.data as MatchingContent[];
 
-  if (!data) throw new Error("No data returned from API")
+  if (!data) throw new Error('No data returned from API');
 
   const total = data.reduce((accumulator, option) => {
-    if (!option.results) return accumulator
+    if (!option.results) return accumulator;
 
-    return accumulator + option.results.length
-  }, 0)
+    return accumulator + option.results.length;
+  }, 0);
 
   return {
     data,
-    total
-  }
-}
+    total,
+  };
+};
 
 export const formatToStrapiField = (entries: SelectedEntry[]) => {
-  if (entries.length === 0) return ""
+  if (entries.length === 0) return '';
 
-  return JSON.stringify(entries.map((entry) => ({ uid: entry.uid, documentId: entry.item.documentId, MRCT: true })).filter(Boolean))
-}
+  return JSON.stringify(
+    entries
+      .map((entry) => ({
+        uid: entry.uid,
+        documentId: entry.item.documentId,
+        MRCT: true,
+      }))
+      .filter(Boolean)
+  );
+};
 
-export const validateCurrentRelations = async (entries: FormattedStrapiEntry[]) => {
-  const { post } = getFetchClient()
+export const validateCurrentRelations = async (
+  entries: FormattedStrapiEntry[]
+) => {
+  const { post } = getFetchClient();
 
   const response = await post(`/${pluginId}/validate-relations`, {
-    entries
-  })
+    entries,
+  });
 
-  return response.data as SelectedEntry[]
-}
+  return response.data as SelectedEntry[];
+};
 
 export const listContentTypes = async () => {
   try {
-    const { get } = getFetchClient()
-    const response = await get(`/${pluginId}/list-content-types`)
+    const { get } = getFetchClient();
+    const response = await get(`/${pluginId}/list-content-types`);
 
-    return response.data
+    return response.data;
   } catch (error) {
-    console.error(error)
-    return []
+    console.error(error);
+    return [];
   }
-}
+};
