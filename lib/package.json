@@ -1,0 +1,81 @@
+{
+  "name": "multi-content-type-relation",
+  "version": "2.0.0",
+  "description": "A multi content type relation plugin for Strapi 5.",
+  "license": "MIT",
+  "author": {
+    "name": "bleulliette@kaliop.com"
+  },
+  "maintainers": [
+    {
+      "name": "bleulliette@kaliop.com"
+    }
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./strapi-admin": {
+      "types": "./dist/admin/src/index.d.ts",
+      "source": "./admin/src/index.ts",
+      "import": "./dist/admin/index.mjs",
+      "require": "./dist/admin/index.js",
+      "default": "./dist/admin/index.js"
+    },
+    "./strapi-server": {
+      "types": "./dist/server/src/index.d.ts",
+      "source": "./server/src/index.ts",
+      "import": "./dist/server/index.mjs",
+      "require": "./dist/server/index.js",
+      "default": "./dist/server/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "strapi-plugin build",
+    "watch": "strapi-plugin watch",
+    "watch:link": "strapi-plugin watch:link",
+    "verify": "strapi-plugin verify",
+    "test:ts:front": "run -T tsc -p lib/admin/tsconfig.json",
+    "test:ts:back": "run -T tsc -p lib/server/tsconfig.json"
+  },
+  "dependencies": {
+    "@dnd-kit/sortable": "^7.0.2",
+    "@strapi/design-system": "^2.0.0-rc.27",
+    "@strapi/icons": "^2.0.0-rc.27",
+    "react-intl": "^7.1.11"
+  },
+  "devDependencies": {
+    "@strapi/sdk-plugin": "^5.3.2",
+    "@strapi/strapi": "^5.16.1",
+    "@strapi/typescript-utils": "^5.16.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "prettier": "^3.6.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1",
+    "styled-components": "^6.1.19",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@strapi/sdk-plugin": "^5.3.2",
+    "@strapi/strapi": "^5.16.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1",
+    "styled-components": "^6.1.19"
+  },
+  "engines": {
+    "node": ">=20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "name": "multi-content-type-relation",
+    "description": "A multi content type relation plugin for Strapi 5",
+    "kind": "plugin"
+  },
+  "publishConfig": {
+    "registry": "https://www.npmjs.com/package/multi-content-type-relation"
+  }
+}
