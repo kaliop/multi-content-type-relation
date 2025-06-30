@@ -98,7 +98,7 @@ export const TableItem = ({ entry, type, uniqueId, disabled, onAdd, onDelete }: 
       </Td>
       <Td>
         <Flex>
-            <IconButton label="Go to entry" onClick={goToEntry} style={{ "margin-right": "5px" }}>
+            <IconButton label="Go to entry" onClick={goToEntry} style={{ "marg@in-right": "5px" }}>
               <Eye />
             </IconButton>
             {type === "suggestion" ? (
