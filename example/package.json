@@ -7,8 +7,8 @@
     "build": "strapi build",
     "console": "strapi console",
     "deploy": "strapi deploy",
-    "dev": "strapi develop",
-    "develop": "strapi develop",
+    "dev": "strapi develop --watch-admin",
+    "develop": "npm run dev",
     "seed:example": "node ./scripts/seed.js",
     "start": "strapi start",
     "strapi": "strapi",
@@ -25,8 +25,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
-    "styled-components": "^6.0.0",
-    "multi-content-type-relation": "file:../lib"
+    "styled-components": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
