@@ -7,6 +7,7 @@ import pluginId from './pluginId';
 import getTrad from './utils/getTrad';
 import { listContentTypes } from './helpers/content';
 import { setContentTypes } from './helpers/storage';
+import SidePanel from './components/SidePanel/SidePanel';
 
 const name = pluginPkg.strapi.name;
 
@@ -126,7 +127,14 @@ export default {
     });
   },
 
-  bootstrap(app: any) {},
+  bootstrap(app: any) {
+    app
+      .getPlugin('content-manager')
+      .injectComponent('editView', 'right-links', {
+        name: 'side-panel',
+        Component: SidePanel,
+      });
+  },
 
   async registerTrads(app: any) {
     const { locales } = app;
