@@ -32,7 +32,7 @@ export default async (ctx, next) => {
 
   const context = {
     configuration,
-    publicationState: ctx.request.query?.['publicationState'] ?? 'live',
+    publicationState: ctx.request.query?.['publicationState'] ?? 'live'
   };
 
   log(' ----- ');
@@ -128,16 +128,16 @@ const hydrateMRCT = async (
             uid,
             response: {
               documentId: response.documentId,
-              ...hydratedResponse,
-            },
+              ...hydratedResponse
+            }
           };
         } else {
           return {
             uid,
             response: {
               documentId: response.documentId,
-              ...response,
-            },
+              ...response
+            }
           };
         }
       });
@@ -186,7 +186,7 @@ const hydrateMRCT = async (
   const newContent = unflatten(flattenedProperties);
   return {
     ...content,
-    ...newContent,
+    ...newContent
   };
 };
 

@@ -7,5 +7,5 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     );
 
     return result;
-  },
+  }
 });

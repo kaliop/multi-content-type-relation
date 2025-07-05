@@ -19,12 +19,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             strapiContentType.info.pluralName === contentType
           ) {
             accumulator[contentType] = {
-              uid: model as UID.ContentType, // TODO: fix typage
+              uid: model as UID.ContentType,
               displayName: contentTypes[model].info.displayName,
               searchableField: strapi
                 .plugin('multi-content-type-relation')
                 .service('service')
-                .getFirstStringFieldInContentType(contentTypes[model]),
+                .getFirstStringFieldInContentType(contentTypes[model])
             };
           }
         });
@@ -45,11 +45,11 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         .findMany({
           filters: {
             [mapping[contentType].searchableField]: {
-              $containsi: keyword,
-            },
+              $containsi: keyword
+            }
           },
           locale,
-          status: 'published',
+          status: 'published'
         })
         .then((results) => {
           let contents = Array.isArray(results)
@@ -69,7 +69,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             uid,
             displayName: mapping[contentType].displayName,
             searchableField: mapping[contentType].searchableField,
-            results: contents,
+            results: contents
           };
         });
     });
@@ -88,12 +88,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         .findOne({
           documentId: entry.documentId,
           populate: '*',
-          status: 'published',
+          status: 'published'
         })
         .then((result) => {
           return {
             uid: entry.uid,
-            result,
+            result
           };
         });
     });
@@ -109,7 +109,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             .plugin('multi-content-type-relation')
             .service('service')
             .getFirstStringFieldInContentType(contentTypes[response.uid]),
-          item: response.result,
+          item: response.result
         };
       })
       .filter((entry) => entry.item);
@@ -129,4 +129,74 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     return contentTypes;
   },
+  fetchRevertRelations: async function (ctx) {
+    const body = ctx.request.body;
+    let documentId = body.documentId as string;
+    const uid = body.uid as UID.ContentType;
+    const isSingleType = body.isSingleType as boolean;
+
+    if (isSingleType) {
+      const document = await strapi.documents(uid).findFirst({
+        populate: '*',
+        status: 'published'
+      });
+
+      if (!document) return [];
+
+      documentId = document.documentId;
+    }
+
+    const mctrRelations = await strapi
+      .documents('plugin::multi-content-type-relation.mctr-relation')
+      .findMany({
+        filters: {
+          target: {
+            $containsi: `${uid}##${documentId}`
+          }
+        }
+      });
+
+    const relations = await Promise.all(
+      mctrRelations.map(async (relation) => {
+        const sourceDocumentId = relation.sourceDocId;
+        const sourceUid = relation.sourceUID;
+
+        const target = relation.target.find((target) =>
+          target.includes(`${uid}##${documentId}`)
+        );
+
+        const [field] = target.split('##');
+
+        const contentTypeName = Object.keys(strapi.contentTypes).find(
+          (key) => strapi.contentTypes[key].uid === sourceUid
+        );
+
+        if (!contentTypeName) return null;
+
+        const contentType = strapi.contentTypes[contentTypeName];
+
+        const document = await strapi.documents(sourceUid).findOne({
+          documentId: sourceDocumentId,
+          populate: '*',
+          status: 'published'
+        });
+
+        const searchableField = strapi
+          .plugin('multi-content-type-relation')
+          .service('service')
+          .getFirstStringFieldInContentType(contentType);
+
+        return {
+          title: document[searchableField],
+          uid: sourceUid,
+          isSingleType: contentType.kind === 'singleType',
+          field,
+          type: contentType.info.displayName,
+          documentId: sourceDocumentId
+        };
+      })
+    );
+
+    return relations;
+  }
 });

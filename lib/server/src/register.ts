@@ -7,7 +7,7 @@ const register = ({ strapi }: { strapi: Core.Strapi }) => {
   strapi.customFields.register({
     name: 'multi-content-type-relation',
     plugin: 'multi-content-type-relation',
-    type: 'richtext',
+    type: 'richtext'
   });
 
   strapi.server.use(middlewares.middleware);

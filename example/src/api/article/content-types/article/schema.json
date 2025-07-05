@@ -60,7 +60,8 @@
       "options": {
         "contentTypes": {
           "article": true,
-          "author": true
+          "author": true,
+          "about": true
         }
       }
     }

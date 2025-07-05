@@ -1,22 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardBody,
   Flex,
-  Divider,
+  Divider
 } from '@strapi/design-system';
-import { CardTitle } from '@strapi/design-system';
-import { CardContent } from '@strapi/design-system';
-import { CardBadge } from '@strapi/design-system';
+import { CardTitle, CardContent, CardBadge } from '@strapi/design-system';
+import { getFetchClient } from '@strapi/strapi/admin';
+import pluginId from '../../pluginId';
+import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
+import { Loader } from '@strapi/design-system';
 
 interface LinkedContent {
-  id: string;
+  documentId: string;
   title: string;
-  type: 'article' | 'author' | 'category';
-  status: 'published' | 'draft';
-  lastModified: string;
+  type: string;
+  uid: string;
+  field: string;
+  isSingleType: boolean;
 }
 
 interface SidePanelProps {
@@ -25,71 +28,84 @@ interface SidePanelProps {
 }
 
 const SidePanel: React.FC<SidePanelProps> = () => {
-  // Données mockées pour simuler les contenus liés
-  const mockLinkedContent: LinkedContent[] = [
-    {
-      id: '1',
-      title: 'Comment optimiser votre SEO en 2024',
-      type: 'article',
-      status: 'published',
-      lastModified: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: '2',
-      title: 'Marie Dupont',
-      type: 'author',
-      status: 'published',
-      lastModified: '2024-01-10T14:20:00Z',
-    },
-    {
-      id: '3',
-      title: 'Marketing Digital',
-      type: 'category',
-      status: 'published',
-      lastModified: '2024-01-05T09:15:00Z',
-    },
-    {
-      id: '4',
-      title: 'Les tendances du développement web',
-      type: 'article',
-      status: 'draft',
-      lastModified: '2024-01-12T16:45:00Z',
-    },
-  ];
+  const {
+    id: documentId,
+    model: uid,
+    isSingleType
+  } = useContentManagerContext();
+
+  const [linkedContent, setLinkedContent] = useState<LinkedContent[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRevertRelations = async () => {
+      const { post } = getFetchClient();
+
+      const response = await post(`/${pluginId}/fetch-revert-relations`, {
+        documentId,
+        uid,
+        isSingleType
+      });
+
+      setLinkedContent(response.data);
+      setLoading(false);
+    };
+
+    fetchRevertRelations();
+  }, []);
+
+  if (loading)
+    return (
+      <Box width="100%">
+        <Loader />
+      </Box>
+    );
 
   return (
-    <Box width='100%'>
+    <Box width="100%">
       <Flex>
-        <Typography variant='beta' fontWeight='bold' marginBottom={2}>
+        <Typography variant="beta" fontWeight="bold" marginBottom={2}>
           Contenus liés
         </Typography>
       </Flex>
 
-      <Flex>
-        <Typography variant='omega' textColor='neutral600' marginBottom={3}>
-          Ce contenu est référencé dans {mockLinkedContent.length} autre(s)
-          contenu(s)
-        </Typography>
-      </Flex>
+      {linkedContent.length > 0 ? (
+        <Flex>
+          <Typography variant="omega" textColor="neutral600" marginBottom={3}>
+            Ce contenu est référencé dans {linkedContent.length} autre(s)
+            contenu(s)
+          </Typography>
+        </Flex>
+      ) : (
+        <Flex>
+          <Typography variant="omega" textColor="neutral600" marginBottom={3}>
+            Ce contenu n'est pas référencé dans d'autres contenus
+          </Typography>
+        </Flex>
+      )}
 
-      <Box marginTop={3}>
-        {mockLinkedContent.map((content) => (
-          <Card key={content.id} marginBottom={2} hasRadius>
-            <CardBody padding={2}>
-              <CardContent>
-                <CardTitle>{content.title}</CardTitle>
-              </CardContent>
-              <CardBadge>{content.type}</CardBadge>
-            </CardBody>
-          </Card>
-        ))}
-      </Box>
+      {linkedContent.map((content) => (
+        <Card key={content.documentId} marginBottom={2}>
+          <CardBody>
+            <CardContent>
+              <a
+                href={
+                  content.isSingleType
+                    ? `/admin/content-manager/single-types/${content.uid}`
+                    : `/admin/content-manager/collection-types/${content.uid}/${content.documentId}`
+                }
+                target="_blank"
+              >
+                <CardTitle>
+                  {content.title} ({content.field})
+                </CardTitle>
+              </a>
+            </CardContent>
 
-      <Divider marginTop={3} marginBottom={3} />
-
-      <Typography variant='omega' textColor='neutral600' textAlign='center'>
-        Cliquez sur un contenu pour le modifier
-      </Typography>
+            <CardBadge>{content.type}</CardBadge>
+          </CardBody>
+        </Card>
+      ))}
     </Box>
   );
 };

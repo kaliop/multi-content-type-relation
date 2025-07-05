@@ -6,19 +6,19 @@ import {
   Loader,
   Field,
   TextInput,
-  TooltipProvider,
+  TooltipProvider
 } from '@strapi/design-system';
 
 import {
   FormattedStrapiEntry,
   PluginOption,
-  SelectedEntry,
+  SelectedEntry
 } from '../../interface';
 import { useSearchedEntries } from '../../hooks/useSearchedEntries';
 import { InputContentSuggestions } from './InputContentSuggestions';
 import {
   formatToStrapiField,
-  validateCurrentRelations,
+  validateCurrentRelations
 } from '../../helpers/content';
 
 type Props = {
@@ -43,7 +43,7 @@ const MainInput = ({
   labelAction,
   label,
   attribute,
-  required,
+  required
 }: Props) => {
   const { formatMessage } = useIntl();
   const location = useLocation();
@@ -162,10 +162,10 @@ const MainInput = ({
     >
       <Field.Label action={labelAction}>{label}</Field.Label>
       <TextInput
-        label='test'
-        placeholder='Type a term to search'
+        label="test"
+        placeholder="Type a term to search"
         required={required}
-        // hint={hint}
+        hint={hint}
         error={inputError}
         value={keyword}
         onChange={(e: any) => setKeyword(e.target.value)}

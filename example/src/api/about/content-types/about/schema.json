@@ -17,7 +17,21 @@
     },
     "blocks": {
       "type": "dynamiczone",
-      "components": ["shared.media", "shared.quote", "shared.rich-text", "shared.slider"]
+      "components": [
+        "shared.media",
+        "shared.quote",
+        "shared.rich-text",
+        "shared.slider"
+      ]
+    },
+    "articles": {
+      "type": "customField",
+      "customField": "plugin::multi-content-type-relation.multi-content-type-relation",
+      "options": {
+        "contentTypes": {
+          "article": true
+        }
+      }
     }
   }
 }
