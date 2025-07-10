@@ -2,9 +2,11 @@ import React, { useMemo } from 'react';
 
 import MainInput from './MainInput';
 import { DesignSystemProvider, darkTheme } from '@strapi/design-system';
+import { useIntl } from 'react-intl';
 
 // TODO: add typs for props
 const Index = (props: any) => {
+  const { locale } = useIntl();
   const attribute = useMemo(() => {
     if (!props.attribute) return props.attribute;
     if (!props.attribute.options) return props.attribute;
@@ -18,13 +20,13 @@ const Index = (props: any) => {
       ...props.attribute,
       options: {
         ...props.attribute.options,
-        contentTypes: contentTypes.join(','),
-      },
+        contentTypes: contentTypes.join(',')
+      }
     };
   }, [props.attribute]);
 
   return (
-    <DesignSystemProvider locale={'fr'} theme={darkTheme}>
+    <DesignSystemProvider locale={locale} theme={darkTheme}>
       <MainInput {...props} attribute={attribute} />
     </DesignSystemProvider>
   );

@@ -8,6 +8,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { SelectedEntry } from '../../interface';
 import { getContentTypeForUid, getContentTypes } from '../../helpers/storage';
 import { useLocation } from 'react-router-dom';
+import useTranslate from '../../hooks/useTranslate';
 
 type Props = {
   entry: SelectedEntry;
@@ -25,8 +26,9 @@ export const TableItem = ({
   uniqueId,
   disabled,
   onAdd,
-  onDelete,
+  onDelete
 }: Props) => {
+  const { translate } = useTranslate();
   const entryIdentifier = useMemo(
     () => `${uniqueId}-${entry.uid}-${entry.item.id}`,
     [entry]
@@ -48,7 +50,7 @@ export const TableItem = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition
   };
 
   const [currentLocale, setCurrentLocale] = useState('');
@@ -87,7 +89,7 @@ export const TableItem = ({
         console.error('[MCTR] Failed to retrieve content types');
       }
     } else {
-      alert('An error occured, please try to refresh the page');
+      alert(translate('tableItem.error'));
     }
   };
 
@@ -106,15 +108,15 @@ export const TableItem = ({
         ) : null}
       </Td>
       <Td>
-        <Typography color='neutral800'>
+        <Typography color="neutral800">
           {entry.item[entry.searchableField]}
         </Typography>
       </Td>
       <Td>
-        <Typography color='neutral800'>{entry.item.id}</Typography>
+        <Typography color="neutral800">{entry.item.id}</Typography>
       </Td>
       <Td>
-        <Typography color='neutral800'>{entry.displayName}</Typography>
+        <Typography color="neutral800">{entry.displayName}</Typography>
       </Td>
       <Td>
         <PublicationState
@@ -125,7 +127,7 @@ export const TableItem = ({
       <Td>
         <Flex>
           <IconButton
-            label='Go to entry'
+            label={translate('tableItem.goToEntry')}
             onClick={goToEntry}
             style={{ 'marg@in-right': '5px' }}
           >
@@ -133,14 +135,19 @@ export const TableItem = ({
           </IconButton>
           {type === 'suggestion' ? (
             <IconButton
-              label='Add'
+              label={translate('tableItem.add')}
               onClick={() => onAdd!(entry)}
               disabled={disabled}
+              marginLeft={1}
             >
               <Plus />
             </IconButton>
           ) : type === 'selected' ? (
-            <IconButton label='Delete' onClick={() => onDelete!(entry)}>
+            <IconButton
+              label={translate('tableItem.delete')}
+              onClick={() => onDelete!(entry)}
+              marginLeft={1}
+            >
               <Trash />
             </IconButton>
           ) : null}

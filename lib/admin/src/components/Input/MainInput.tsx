@@ -20,6 +20,7 @@ import {
   formatToStrapiField,
   validateCurrentRelations
 } from '../../helpers/content';
+import useTranslate from '../../hooks/useTranslate';
 
 type Props = {
   name: string;
@@ -46,6 +47,7 @@ const MainInput = ({
   required
 }: Props) => {
   const { formatMessage } = useIntl();
+  const { translate } = useTranslate();
   const location = useLocation();
   const maximumItems = attribute.options.max;
   const minimumItems = attribute.options.min || 0;
@@ -69,33 +71,33 @@ const MainInput = ({
   const hint = useMemo(() => {
     const minLabel =
       minimumItems > 0
-        ? `min. ${minimumItems} ${minimumItems > 1 ? 'entries' : 'entry'}`
+        ? `${translate('input.hint.min')} ${minimumItems} ${minimumItems > 1 ? translate('input.hint.entries') : translate('input.hint.entry')}`
         : '';
     const maxLabel =
       maximumItems > 0
-        ? `max. ${maximumItems} ${maximumItems > 1 ? 'entries' : 'entry'}`
+        ? `${translate('input.hint.max')} ${maximumItems} ${maximumItems > 1 ? translate('input.hint.entries') : translate('input.hint.entry')}`
         : '';
 
     return `
       ${minLabel ? `${minLabel}` : ''}
       ${minLabel && maxLabel ? ', ' : ''}
       ${maxLabel}
-      ${minLabel || maxLabel ? ' - ' : ''}
-      ${selected.length} selected
+      ${minLabel || maxLabel ? translate('input.hint.separator') : ''}
+      ${selected.length} ${translate('input.hint.selected')}
     `;
-  }, [selected, maximumItems, minimumItems]);
+  }, [selected, maximumItems, minimumItems, translate]);
 
   const inputError = useMemo(() => {
     if (!error) return '';
 
     if (selected.length < minimumItems)
-      return `${error} - A minimum of ${minimumItems} item(s) is required`;
+      return `${error} - ${translate('input.error.min')} ${minimumItems} ${translate('input.error.required')}`;
 
     if (selected.length > maximumItems)
-      return `${error} - A maximum of ${maximumItems} item(s) is required`;
+      return `${error} - ${translate('input.error.max')} ${maximumItems} ${translate('input.error.required')}`;
 
     return error;
-  }, [error, maximumItems, minimumItems, selected]);
+  }, [error, maximumItems, minimumItems, selected, translate]);
 
   const { loading: searchLoading, results } = useSearchedEntries(
     keyword,
@@ -162,8 +164,7 @@ const MainInput = ({
     >
       <Field.Label action={labelAction}>{label}</Field.Label>
       <TextInput
-        label="test"
-        placeholder="Type a term to search"
+        placeholder={translate('input.placeholder')}
         required={required}
         hint={hint}
         error={inputError}

@@ -6,23 +6,24 @@ import {
   Tr,
   Th,
   Tbody,
-  Typography,
+  Typography
 } from '@strapi/design-system';
 import {
   DndContext,
   PointerSensor,
   closestCenter,
   useSensor,
-  useSensors,
+  useSensors
 } from '@dnd-kit/core';
 import {
   SortableContext,
   arrayMove,
-  verticalListSortingStrategy,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 
 import { MatchingContent, SelectedEntry } from '../../interface';
 import { TableItem } from './TableItem';
+import useTranslate from '../../hooks/useTranslate';
 
 type Props = {
   uniqueId: number;
@@ -43,8 +44,9 @@ export function InputContentSuggestions({
   onDeleteEntry,
   onEntriesSorted,
   maximum,
-  sortable,
+  sortable
 }: Props) {
+  const { translate } = useTranslate();
   const suggestionAsSelectedEntry = useMemo(() => {
     return (suggestions || [])
       .flatMap((suggestion) =>
@@ -52,7 +54,7 @@ export function InputContentSuggestions({
           displayName: suggestion.displayName,
           item: entrySuggestion,
           searchableField: suggestion.searchableField,
-          uid: suggestion.uid,
+          uid: suggestion.uid
         }))
       )
       .slice(0, 10);
@@ -92,8 +94,8 @@ export function InputContentSuggestions({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
-      },
+        distance: 5
+      }
     })
   );
 
@@ -117,22 +119,30 @@ export function InputContentSuggestions({
   if (!availableSuggestions?.length && !selected?.length) return null;
 
   return (
-    <Box padding={[2, 0, 2, 0]} background='neutral100'>
+    <Box padding={[2, 0, 2, 0]} background="neutral100">
       <Table style={{ whiteSpace: 'unset' }}>
         <Thead>
           <Tr>
             <Th></Th>
             <Th>
-              <Typography variant='sigma'>Title</Typography>
+              <Typography variant="sigma">
+                {translate('contentSuggestions.title')}
+              </Typography>
             </Th>
             <Th>
-              <Typography variant='sigma'>ID</Typography>
+              <Typography variant="sigma">
+                {translate('contentSuggestions.id')}
+              </Typography>
             </Th>
             <Th>
-              <Typography variant='sigma'>Content type</Typography>
+              <Typography variant="sigma">
+                {translate('contentSuggestions.contentType')}
+              </Typography>
             </Th>
             <Th>
-              <Typography variant='sigma'>State</Typography>
+              <Typography variant="sigma">
+                {translate('contentSuggestions.state')}
+              </Typography>
             </Th>
           </Tr>
         </Thead>
@@ -155,7 +165,7 @@ export function InputContentSuggestions({
                         uniqueId={uniqueId}
                         key={buildSelectedId(entry)}
                         entry={entry}
-                        type='selected'
+                        type="selected"
                         onDelete={onDelete}
                         sortable={sortable}
                       />
@@ -168,7 +178,7 @@ export function InputContentSuggestions({
                 <TableItem
                   uniqueId={uniqueId}
                   entry={entry}
-                  type='selected'
+                  type="selected"
                   onDelete={onDelete}
                 />
               ))
@@ -184,7 +194,7 @@ export function InputContentSuggestions({
               uniqueId={uniqueId}
               key={buildSelectedId(entry)}
               entry={entry}
-              type='suggestion'
+              type="suggestion"
               onAdd={onAdd}
               disabled={
                 typeof maximum === 'number'
