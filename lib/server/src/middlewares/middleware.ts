@@ -1,9 +1,47 @@
 import { getPluginConfiguration, log } from '../utils';
 import type { Context, StrapiResponse, AnyEntity } from '../interface';
+import { flattenObj, unflatten } from '../helpers';
+import type { UID } from '@strapi/strapi';
 
 export default async (ctx, next) => {
   await next();
 
+  if (
+    [
+      'collection-types.create',
+      'collection-types.update',
+      'single-types.createOrUpdate'
+    ].includes(ctx?.state?.route?.handler)
+  ) {
+    const [, _, __, rest] = ctx?.request.url.split('/');
+    const contentType = rest.split('?')[0];
+
+    const isDraftAndPublish =
+      strapi.contentTypes[contentType].options?.draftAndPublish;
+
+    // We want to update relation only on publish for those who have it activated
+    if (isDraftAndPublish) {
+      log(`[MIDDLEWARE] ${contentType}is draft and publish`);
+      return;
+    }
+
+    const documentId = ctx.body.data.documentId;
+    syncMctrRelation(documentId, contentType as UID.ContentType);
+  }
+
+  if (
+    ['collection-types.publish', 'single-types.publish'].includes(
+      ctx?.state?.route?.handler
+    )
+  ) {
+    const [, _, __, rest] = ctx?.request.url.split('/');
+    const contentType = rest.split('?')[0];
+
+    const documentId = ctx.body.data.documentId;
+    syncMctrRelation(documentId, contentType as UID.ContentType);
+  }
+
+  // Only on specific handlerswith public API we want to hydrate the MCTR relation
   if (!ctx?.request?.url?.startsWith('/api')) return;
   if (ctx.request.method !== 'GET') return;
   if (!ctx.body) return;
@@ -13,8 +51,8 @@ export default async (ctx, next) => {
   const handler = ctx.state.route.handler;
   const contentTypes = Object.keys(strapi.contentTypes);
 
-  log(`URL: ${ctx.request.url} (${ctx.request.method})`);
-  log(`Strapi Route: ${JSON.stringify(ctx.state.route, null, 2)}`);
+  log(`[MIDDLEWARE] URL: ${ctx.request.url} (${ctx.request.method})`);
+  log(`[MIDDLEWARE] Strapi Route: ${JSON.stringify(ctx.state.route, null, 2)}`);
 
   const validHandler = contentTypes
     .filter((contentType) => contentType.startsWith('api::'))
@@ -25,7 +63,7 @@ export default async (ctx, next) => {
         handler.includes(`${contentType}.find`)
     );
 
-  log(`Is valid handler: ${validHandler}`);
+  log(`[MIDDLEWARE] Is valid handler: ${validHandler}`);
 
   // Allow only findOne/findMany for native contentypes that have api::
   if (!validHandler) return;
@@ -35,8 +73,7 @@ export default async (ctx, next) => {
     publicationState: ctx.request.query?.['publicationState'] ?? 'live'
   };
 
-  log(' ----- ');
-  log(`Context Body: ${JSON.stringify(ctx.body, null, 2)}`);
+  log(`[MIDDLEWARE] Context Body: ${JSON.stringify(ctx.body, null, 2)}`);
   if (ctx.body.error || !ctx.body?.data) return;
 
   const hydratedData = await augmentMRCT(ctx.body, 1, context);
@@ -102,7 +139,9 @@ const hydrateMRCT = async (
 
   if (!contentsToFetch.size) return content;
 
-  log(`Depth: ${currentDepth}, Hydrating MCTR for ID ${content.id}`);
+  log(
+    `[MCTR HYDRATOR] Depth: ${currentDepth}, Hydrating MCTR for ID ${content.id}`
+  );
 
   const promises: Promise<any>[] = [];
   for (const item of Array.from(contentsToFetch)) {
@@ -190,32 +229,81 @@ const hydrateMRCT = async (
   };
 };
 
-const flattenObj = (obj: any, parent: any, res: Record<string, any> = {}) => {
-  for (let key in obj) {
-    let propName = parent ? parent + '.' + key : key;
-    if (typeof obj[key] == 'object') {
-      flattenObj(obj[key], propName, res);
-    } else {
-      res[propName] = obj[key];
-    }
-  }
-  return res;
-};
+const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
+  const mctrDocuments = await strapi
+    .documents('plugin::multi-content-type-relation.mctr-relation')
+    .findMany({
+      filters: {
+        sourceDocId: documentId
+      }
+    });
 
-const unflatten = (data: any) => {
-  var result = {};
-  for (var i in data) {
-    var keys = i.split('.');
-    keys.reduce(function (r: any, e, j) {
-      return (
-        r[e] ||
-        (r[e] = isNaN(Number(keys[j + 1]))
-          ? keys.length - 1 == j
-            ? data[i]
-            : {}
-          : [])
-      );
-    }, result);
+  if (mctrDocuments.length !== 0) {
+    log(`[SYNC] Delete MCTR relations for ${documentId}`);
+    // delete the mctr relation
+    await Promise.all(
+      mctrDocuments.map(async ({ documentId }) => {
+        await strapi
+          .documents('plugin::multi-content-type-relation.mctr-relation')
+          .delete({
+            documentId
+          });
+      })
+    );
   }
-  return result;
+
+  log(`[SYNC] Find document ${documentId}`);
+  const document = await strapi.documents(uid).findOne({
+    documentId
+  });
+
+  // Explore document to find the mctr relation
+  const contentTypeKey = Object.keys(strapi.contentTypes).find(
+    (ct) => strapi.contentTypes[ct].uid === uid
+  );
+
+  if (!contentTypeKey) return;
+
+  const contentType = strapi.contentTypes[contentTypeKey];
+
+  // TODO: recursive find the mctr relation
+  const mctrFields = Object.keys(contentType.attributes).filter(
+    (field) =>
+      contentType.attributes[field].customField ===
+      'plugin::multi-content-type-relation.multi-content-type-relation'
+  );
+
+  if (mctrFields.length === 0) return;
+
+  const targetJSON = [];
+
+  // Create the mctr relation to have a sync
+  mctrFields.forEach(async (field) => {
+    const fieldValue = document[field];
+    if (!fieldValue) return;
+
+    try {
+      const mctrField = JSON.parse(fieldValue);
+      mctrField.forEach((item) => {
+        targetJSON.push(`${field}##${item.uid}##${item.documentId}`);
+      });
+    } catch (e) {
+      log(`[SYNC] Error parsing field ${field} ${fieldValue}`);
+    }
+  });
+
+  log(`[SYNC] Target JSON ${targetJSON}`);
+  if (targetJSON.length === 0) return;
+
+  await strapi
+    .documents('plugin::multi-content-type-relation.mctr-relation')
+    .create({
+      data: {
+        sourceUID: uid,
+        sourceDocId: documentId,
+        target: targetJSON
+      }
+    });
+
+  log(`[SYNC] MCTR relation created for ${documentId}`);
 };
