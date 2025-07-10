@@ -4,7 +4,7 @@ export default {
   config: {
     locales: [
       // 'ar',
-      // 'fr',
+      'fr'
       // 'cs',
       // 'de',
       // 'dk',
@@ -29,9 +29,9 @@ export default {
       // 'vi',
       // 'zh-Hans',
       // 'zh',
-    ],
+    ]
   },
   bootstrap(app: StrapiApp) {
     console.log(app);
-  },
+  }
 };
