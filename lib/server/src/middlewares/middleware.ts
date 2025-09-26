@@ -6,6 +6,9 @@ import type { UID } from '@strapi/strapi';
 export default async (ctx, next) => {
   await next();
 
+  if (!ctx.body) return;
+  if (!ctx.body.data) return;
+
   if (
     [
       'collection-types.create',
@@ -53,6 +56,8 @@ export default async (ctx, next) => {
 
   log(`[MIDDLEWARE] URL: ${ctx.request.url} (${ctx.request.method})`);
   log(`[MIDDLEWARE] Strapi Route: ${JSON.stringify(ctx.state.route, null, 2)}`);
+
+  if (typeof handler !== 'string') return;
 
   const validHandler = contentTypes
     .filter((contentType) => contentType.startsWith('api::'))
