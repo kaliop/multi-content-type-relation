@@ -28,7 +28,9 @@
       "default": "./dist/server/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "strapi-plugin build",
     "watch": "strapi-plugin watch",
@@ -74,6 +76,6 @@
     "kind": "plugin"
   },
   "publishConfig": {
-    "registry": "https://www.npmjs.com/package/multi-content-type-relation"
+    "registry": "https://registry.npmjs.org/"
   }
 }
