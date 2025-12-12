@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 
 import MainInput from './MainInput';
-import { DesignSystemProvider, darkTheme } from '@strapi/design-system';
 import { useIntl } from 'react-intl';
 
 // TODO: add typs for props
@@ -26,9 +25,7 @@ const Index = (props: any) => {
   }, [props.attribute]);
 
   return (
-    <DesignSystemProvider locale={locale} theme={darkTheme}>
-      <MainInput {...props} attribute={attribute} />
-    </DesignSystemProvider>
+    <MainInput {...props} attribute={attribute} />
   );
 };
 
