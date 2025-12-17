@@ -49,7 +49,7 @@ const SidePanel: React.FC<SidePanelProps> = () => {
         isSingleType
       });
 
-      setLinkedContent(response.data);
+      setLinkedContent(Array.isArray(response.data) ? response.data.filter(Boolean) : []);
       setLoading(false);
     };
 
@@ -119,11 +119,8 @@ const SidePanel: React.FC<SidePanelProps> = () => {
                       style={{ textDecoration: 'none' }}
                     >
                       <Typography
-                        variant="beta"
-                        fontWeight="bold"
-                        textColor="neutral800"
                       >
-                        {content.title}
+                        {content.title ?? content.documentId}
                       </Typography>
                     </a>
                   </Box>

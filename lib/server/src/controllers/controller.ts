@@ -197,6 +197,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       })
     );
 
-    return relations;
+    return relations.filter(Boolean);
   }
 });
