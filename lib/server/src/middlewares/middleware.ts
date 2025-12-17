@@ -220,7 +220,7 @@ const hydrateMRCT = async (
       );
 
       if (matchingContent) {
-        hydratedArray.push(matchingContent.response);
+        hydratedArray.push({ uid: matchingContent.uid, ...matchingContent.response });
       }
     }
 
