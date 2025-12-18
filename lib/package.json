@@ -1,6 +1,6 @@
 {
   "name": "multi-content-type-relation",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A multi content type relation plugin for Strapi 5.",
   "license": "MIT",
   "author": {
