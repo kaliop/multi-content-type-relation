@@ -39,8 +39,8 @@ export default async (ctx, next) => {
 
   if (
     ['collection-types.publish', 'single-types.publish'].includes(
-      ctx?.state?.route?.handler && !hasSyncedRelations
-    )
+      ctx?.state?.route?.handler
+    ) && !hasSyncedRelations
   ) {
     const [, _, __, rest] = ctx?.request.url.split('/');
     const contentType = rest.split('?')[0];
