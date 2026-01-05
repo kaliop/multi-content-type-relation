@@ -9,12 +9,14 @@ export default async (ctx, next) => {
   if (!ctx.body) return;
   if (!ctx.body.data) return;
 
+  let hasSyncedRelations = false
+
   if (
     [
       'collection-types.create',
       'collection-types.update',
       'single-types.createOrUpdate'
-    ].includes(ctx?.state?.route?.handler)
+    ].includes(ctx?.state?.route?.handler) && !hasSyncedRelations
   ) {
     const [, _, __, rest] = ctx?.request.url.split('/');
     const contentType = rest.split('?')[0];
@@ -24,17 +26,20 @@ export default async (ctx, next) => {
 
     // We want to update relation only on publish for those who have it activated
     if (isDraftAndPublish) {
-      log(`[MIDDLEWARE] ${contentType}is draft and publish`);
+      log(`[MIDDLEWARE] ${contentType} is draft and publish`);
       return;
     }
 
+
     const documentId = ctx.body.data.documentId;
+    log(`[MIDDLEWARE] ${ctx?.state?.route?.handler} Syncing MCTR relation for ${contentType}, documentId: ${documentId}`);
     syncMctrRelation(documentId, contentType as UID.ContentType);
+    hasSyncedRelations = true;
   }
 
   if (
     ['collection-types.publish', 'single-types.publish'].includes(
-      ctx?.state?.route?.handler
+      ctx?.state?.route?.handler && !hasSyncedRelations
     )
   ) {
     const [, _, __, rest] = ctx?.request.url.split('/');
@@ -42,6 +47,8 @@ export default async (ctx, next) => {
 
     const documentId = ctx.body.data.documentId;
     syncMctrRelation(documentId, contentType as UID.ContentType);
+    log(`[MIDDLEWARE] ${ctx?.state?.route?.handler} Syncing MCTR relation for ${contentType}, documentId: ${documentId}`);
+    hasSyncedRelations = true;
   }
 
   // Only on specific handlerswith public API we want to hydrate the MCTR relation
@@ -243,6 +250,8 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
       }
     });
 
+  log(`[SYNC] MCTR relations for ${documentId}: ${JSON.stringify(mctrDocuments, null, 2)}`);
+
   if (mctrDocuments.length !== 0) {
     log(`[SYNC] Delete MCTR relations for ${documentId}`);
     // delete the mctr relation
@@ -280,6 +289,8 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
 
   if (mctrFields.length === 0) return;
 
+  log(`[SYNC] MCTR fields for ${documentId}: ${JSON.stringify(mctrFields, null, 2)}`);
+
   const targetJSON = [];
 
   // Create the mctr relation to have a sync
@@ -297,7 +308,7 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
     }
   });
 
-  log(`[SYNC] Target JSON ${targetJSON}`);
+  log(`[SYNC] Target JSON for ${documentId}: ${JSON.stringify(targetJSON, null, 2)}`);
   if (targetJSON.length === 0) return;
 
   await strapi
