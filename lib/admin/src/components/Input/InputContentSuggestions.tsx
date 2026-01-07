@@ -4,6 +4,7 @@ import {
   Table,
   Thead,
   Tr,
+  Td,
   Th,
   Tbody,
   Typography
@@ -32,7 +33,6 @@ type Props = {
   onAddEntry?(entry: SelectedEntry): void;
   onDeleteEntry?(entry: SelectedEntry): void;
   onEntriesSorted?(entries: SelectedEntry[]): void;
-  sortable?: boolean;
   maximum?: number;
 };
 
@@ -44,7 +44,6 @@ export function InputContentSuggestions({
   onDeleteEntry,
   onEntriesSorted,
   maximum,
-  sortable
 }: Props) {
   const { translate } = useTranslate();
   const suggestionAsSelectedEntry = useMemo(() => {
@@ -61,7 +60,7 @@ export function InputContentSuggestions({
   }, [suggestions]);
 
   const buildSelectedId = (entry: SelectedEntry) => {
-    return `${uniqueId}-${entry.uid}-${entry.item.id}`;
+    return `${uniqueId}-${entry.uid}-${entry.item.documentId}`;
   };
 
   const availableSuggestions = useMemo(() => {
@@ -92,14 +91,17 @@ export function InputContentSuggestions({
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5
-      }
-    })
+    useSensor(PointerSensor)
   );
 
+  const sortableItems = useMemo<string[]>(() => {
+    const items =  selected?.map((entry) => buildSelectedId(entry)) ?? [];
+
+    return items;
+  }, [selected]);
+
   const handleDragEnd = (event: any) => {
+    console.log(event)
     const { active, over } = event;
 
     if (!active || !over) return;
@@ -120,18 +122,13 @@ export function InputContentSuggestions({
 
   return (
     <Box padding={[2, 0, 2, 0]} background="neutral100">
-      <Table style={{ whiteSpace: 'unset' }}>
+      <Table style={{ whiteSpace: 'unset', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
         <Thead>
           <Tr>
             <Th></Th>
             <Th>
               <Typography variant="sigma">
                 {translate('contentSuggestions.title')}
-              </Typography>
-            </Th>
-            <Th>
-              <Typography variant="sigma">
-                {translate('contentSuggestions.id')}
               </Typography>
             </Th>
             <Th>
@@ -149,50 +146,42 @@ export function InputContentSuggestions({
 
         <Tbody>
           {selected?.length ? (
-            sortable ? (
-              <>
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
+            <>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={sortableItems}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <SortableContext
-                    items={selected.map((entry) => buildSelectedId(entry))}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {selected.map((entry) => (
-                      <TableItem
-                        uniqueId={uniqueId}
-                        key={buildSelectedId(entry)}
-                        entry={entry}
-                        type="selected"
-                        onDelete={onDelete}
-                        sortable={sortable}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
-              </>
-            ) : (
-              (selected || []).map((entry) => (
-                <TableItem
-                  uniqueId={uniqueId}
-                  entry={entry}
-                  type="selected"
-                  onDelete={onDelete}
-                />
-              ))
-            )
+                  {selected.map((entry) => (
+                    <TableItem
+                      key={buildSelectedId(entry)}
+                      id={buildSelectedId(entry)}
+                      entry={entry}
+                      type="selected"
+                      onDelete={onDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </>
           ) : null}
 
           {availableSuggestions.length && selected?.length ? (
-            <Tr style={{ height: '32px' }} />
+            <Tr>
+              <Td colSpan={5}>
+                <hr style={{ width: '100%' }} />
+              </Td>
+            </Tr>
           ) : null}
 
           {availableSuggestions.map((entry) => (
             <TableItem
-              uniqueId={uniqueId}
               key={buildSelectedId(entry)}
+              id={buildSelectedId(entry)}
               entry={entry}
               type="suggestion"
               onAdd={onAdd}

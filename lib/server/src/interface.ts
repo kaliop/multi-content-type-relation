@@ -23,9 +23,11 @@ export type SelectedEntry = {
 export type FormattedStrapiEntry = {
   uid: string;
   documentId: string;
+  locale?: string;
 };
 
 export type Configuration = {
+  disableRevertRelations: boolean;
   recursive: {
     enabled: boolean;
     maxDepth: number;

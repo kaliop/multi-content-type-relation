@@ -12,45 +12,31 @@ import useTranslate from '../../hooks/useTranslate';
 
 type Props = {
   entry: SelectedEntry;
+  id: string;
   type: 'suggestion' | 'selected';
-  uniqueId: number;
   onAdd?(entry: SelectedEntry): void;
   onDelete?(entry: SelectedEntry): void;
   disabled?: boolean;
-  sortable?: boolean;
 };
 
 export const TableItem = ({
   entry,
+  id,
   type,
-  uniqueId,
   disabled,
   onAdd,
   onDelete
 }: Props) => {
   const { translate } = useTranslate();
-  const entryIdentifier = useMemo(
-    () => `${uniqueId}-${entry.uid}-${entry.item.id}`,
-    [entry]
-  );
   const contentType = getContentTypeForUid(entry.uid);
   const location = useLocation();
 
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: entryIdentifier });
-
-  const trueRef = document.querySelector(
-    `[data-tableitem="${entryIdentifier}"]`
-  );
-  useEffect(() => {
-    if (!trueRef) return;
-
-    setNodeRef(trueRef as HTMLElement);
-  }, [trueRef]);
+  const { setDraggableNodeRef, setDroppableNodeRef, transform, transition,  attributes, listeners } =
+    useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition
+    transition,
   };
 
   const [currentLocale, setCurrentLocale] = useState('');
@@ -75,9 +61,11 @@ export const TableItem = ({
           );
           if (contentType) {
             const kind = contentType.kind;
-            let url = `/admin/content-manager/${kind}/${entry.uid}`;
+            let url = '';
             if (kind === 'collectionType') {
-              url += `/${entry.item.id}`;
+              url = `/admin/content-manager/collection-types/${entry.uid}/${entry.item.documentId}`;
+            } else {
+              url = `/admin/content-manager/single-types/${entry.uid}`;
             }
             url += `?plugins[i18n][locale]=${currentLocale}`;
 
@@ -94,15 +82,14 @@ export const TableItem = ({
   };
 
   return (
-    <Tr
+    <tr 
       style={style}
+      ref={setDroppableNodeRef}
       {...attributes}
-      {...listeners}
-      data-tableitem={entryIdentifier}
     >
       <Td>
         {type === 'selected' ? (
-          <IconButton noBorder>
+          <IconButton ref={setDraggableNodeRef} {...listeners}>
             <Drag />
           </IconButton>
         ) : null}
@@ -111,9 +98,6 @@ export const TableItem = ({
         <Typography color="neutral800">
           {entry.item[entry.searchableField]}
         </Typography>
-      </Td>
-      <Td>
-        <Typography color="neutral800">{entry.item.id}</Typography>
       </Td>
       <Td>
         <Typography color="neutral800">{entry.displayName}</Typography>
@@ -129,7 +113,7 @@ export const TableItem = ({
           <IconButton
             label={translate('tableItem.goToEntry')}
             onClick={goToEntry}
-            style={{ 'marg@in-right': '5px' }}
+            style={{ 'marginRight': '5px' }}
           >
             <Eye />
           </IconButton>
@@ -153,6 +137,6 @@ export const TableItem = ({
           ) : null}
         </Flex>
       </Td>
-    </Tr>
+    </tr>
   );
 };

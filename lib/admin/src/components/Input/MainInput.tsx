@@ -65,7 +65,7 @@ const MainInput = ({
         ? []
         : selected;
 
-    onChange({ target: { name, value: formatToStrapiField(value) } });
+    onChange({ target: { name, value: formatToStrapiField(value, currentLocale) } });
   }, [selected]);
 
   const hint = useMemo(() => {
@@ -183,7 +183,6 @@ const MainInput = ({
           onDeleteEntry={onDeleteEntry}
           onEntriesSorted={onEntriesSorted}
           maximum={maximumItems}
-          sortable
         />
       )}
     </Field.Root>

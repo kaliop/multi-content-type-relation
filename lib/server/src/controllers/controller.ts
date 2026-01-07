@@ -1,5 +1,6 @@
 import type { Core, UID } from '@strapi/strapi';
 import { FormattedStrapiEntry } from '../interface';
+import { getPluginConfiguration } from '../utils';
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   getMatchingContent(ctx) {
@@ -83,13 +84,18 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const entries = body.entries as FormattedStrapiEntry[];
 
     const promises = entries.map((entry) => {
+      const findOneOptions = {
+        documentId: entry.documentId,
+        populate: '*',
+        status: 'published'
+      } as any
+      if (entry.locale) {
+        findOneOptions.locale = entry.locale
+      }
+
       return strapi
         .documents(entry.uid as any)
-        .findOne({
-          documentId: entry.documentId,
-          populate: '*',
-          status: 'published'
-        })
+        .findOne(findOneOptions)
         .then((result) => {
           return {
             uid: entry.uid,
@@ -134,6 +140,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     let documentId = body.documentId as string;
     const uid = body.uid as UID.ContentType;
     const isSingleType = body.isSingleType as boolean;
+    const locale = body.locale as string;
 
     if (isSingleType) {
       const document = await strapi.documents(uid).findFirst({
@@ -151,7 +158,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       .findMany({
         filters: {
           target: {
-            $containsi: `${uid}##${documentId}`
+            $containsi: `${uid}##${documentId}${locale ? `####${locale}` : ''}`
           }
         }
       });
@@ -209,5 +216,9 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     );
 
     return relations.filter(Boolean);
+  },
+  getConfiguration: async function () {
+    const configuration = getPluginConfiguration();
+    return configuration;
   }
 });

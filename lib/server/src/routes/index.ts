@@ -31,5 +31,13 @@ export default [
     config: {
       policies: []
     }
+  },
+  {
+    method: 'GET',
+    path: '/get-configuration',
+    handler: 'controller.getConfiguration',
+    config: {
+      policies: []
+    }
   }
 ];
