@@ -158,7 +158,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const relations = await Promise.all(
       mctrRelations.map(async (relation) => {
-        const sourceDocumentId = relation.sourceDocId;
+        let sourceDocumentId = relation.sourceDocId;
+        let locale = null
+        if (sourceDocumentId.includes('####')) {
+          const [documentId, sourceLocale] = sourceDocumentId.split('####');
+          locale = sourceLocale
+          sourceDocumentId = documentId
+        }
         const sourceUid = relation.sourceUID;
 
         const target = relation.target.find((target) =>
@@ -175,11 +181,16 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
         const contentType = strapi.contentTypes[contentTypeName];
 
-        const document = await strapi.documents(sourceUid).findOne({
+        const findOneOptions = {
           documentId: sourceDocumentId,
           populate: '*',
           status: 'published'
-        });
+        } as any;
+        if (locale) {
+          findOneOptions.locale = locale
+        }
+
+        const document = await strapi.documents(sourceUid).findOne(findOneOptions);
 
         const searchableField = strapi
           .plugin('multi-content-type-relation')
