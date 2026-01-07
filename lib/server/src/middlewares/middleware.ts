@@ -32,8 +32,9 @@ export default async (ctx, next) => {
 
 
     const documentId = ctx.body.data.documentId;
+    const locale = ctx.body.data.locale
     log(`[MIDDLEWARE] ${ctx?.state?.route?.handler} Syncing MCTR relation for ${contentType}, documentId: ${documentId}`);
-    syncMctrRelation(documentId, contentType as UID.ContentType);
+    syncMctrRelation(documentId, contentType as UID.ContentType, locale);
     hasSyncedRelations = true;
   }
 
@@ -241,36 +242,7 @@ const hydrateMRCT = async (
   };
 };
 
-const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
-  const mctrDocuments = await strapi
-    .documents('plugin::multi-content-type-relation.mctr-relation')
-    .findMany({
-      filters: {
-        sourceDocId: documentId
-      }
-    });
-
-  log(`[SYNC] MCTR relations for ${documentId}: ${JSON.stringify(mctrDocuments, null, 2)}`);
-
-  if (mctrDocuments.length !== 0) {
-    log(`[SYNC] Delete MCTR relations for ${documentId}`);
-    // delete the mctr relation
-    await Promise.all(
-      mctrDocuments.map(async ({ documentId }) => {
-        await strapi
-          .documents('plugin::multi-content-type-relation.mctr-relation')
-          .delete({
-            documentId
-          });
-      })
-    );
-  }
-
-  log(`[SYNC] Find document ${documentId}`);
-  const document = await strapi.documents(uid).findOne({
-    documentId
-  });
-
+const syncMctrRelation = async (documentId: string, uid: UID.ContentType, locale?: string) => {
   // Explore document to find the mctr relation
   const contentTypeKey = Object.keys(strapi.contentTypes).find(
     (ct) => strapi.contentTypes[ct].uid === uid
@@ -287,14 +259,54 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
       'plugin::multi-content-type-relation.multi-content-type-relation'
   );
 
-  if (mctrFields.length === 0) return;
+  if (mctrFields.length === 0) {
+    log(`[SYNC] No MCTR fields found for ${documentId}, discarding sync`);
+    return
+  }
 
-  log(`[SYNC] MCTR fields for ${documentId}: ${JSON.stringify(mctrFields, null, 2)}`);
+  let mctrRelationDocumentId = documentId;
+  if (locale) {
+    mctrRelationDocumentId = `${documentId}####${locale}`;
+  }
+  
+  try {
+    // Find the mctr relation document
+    const mctrDocuments = await strapi
+    .documents('plugin::multi-content-type-relation.mctr-relation')
+    .findMany({
+      filters: {
+        sourceDocId: mctrRelationDocumentId
+      }
+    });
 
-  const targetJSON = [];
+    log(`[SYNC] MCTR relations for ${mctrRelationDocumentId}: ${JSON.stringify(mctrDocuments, null, 2)}`);
 
-  // Create the mctr relation to have a sync
-  mctrFields.forEach(async (field) => {
+    // Delete MCTR relations for the document
+    if (mctrDocuments.length !== 0) {
+    log(`[SYNC] Delete MCTR relations for ${mctrRelationDocumentId}`);
+    // delete the mctr relation
+    await Promise.all(
+      mctrDocuments.map(async ({ documentId }) => {
+        await strapi
+          .documents('plugin::multi-content-type-relation.mctr-relation')
+          .delete({
+            documentId
+          });
+      })
+    );
+    }
+
+    log(`[SYNC] Find document ${documentId}`);
+    const document = await strapi.documents(uid).findOne({
+    documentId
+    });
+
+    log(`[SYNC] MCTR fields for ${documentId}: ${JSON.stringify(mctrFields, null, 2)}`);
+
+    const targetJSON = [];
+
+    // Create the mctr relation to have a sync
+    mctrFields.forEach(async (field) => {
     const fieldValue = document[field];
     if (!fieldValue) return;
 
@@ -306,12 +318,12 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
     } catch (e) {
       log(`[SYNC] Error parsing field ${field} ${fieldValue}`);
     }
-  });
+    });
 
-  log(`[SYNC] Target JSON for ${documentId}: ${JSON.stringify(targetJSON, null, 2)}`);
-  if (targetJSON.length === 0) return;
+    log(`[SYNC] Target JSON for ${documentId}: ${JSON.stringify(targetJSON, null, 2)}`);
+    if (targetJSON.length === 0) return;
 
-  await strapi
+    await strapi
     .documents('plugin::multi-content-type-relation.mctr-relation')
     .create({
       data: {
@@ -321,5 +333,9 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType) => {
       }
     });
 
-  log(`[SYNC] MCTR relation created for ${documentId}`);
+    log(`[SYNC] MCTR relation created for ${documentId}`);
+  } catch (error) {
+    log(`[SYNC] Error creating MCTR relation for ${documentId}: ${error}`);
+    return
+  }
 };
