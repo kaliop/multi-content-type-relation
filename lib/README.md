@@ -74,6 +74,12 @@ If, for some reasons, you want to hydrate the relations of the relations of the 
 
 This setting show debug log of the plugin for better understanding
 
+###### Key: `disableRevertRelations`
+
+> `required:` no | `type:` Boolean | default false
+
+This setting disable relaction MCTR if needed for performances/stability concerns
+
 ## Submit an issue
 
 You can use github issues to raise an issue about this plugin

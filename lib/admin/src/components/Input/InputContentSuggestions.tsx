@@ -101,7 +101,6 @@ export function InputContentSuggestions({
   }, [selected]);
 
   const handleDragEnd = (event: any) => {
-    console.log(event)
     const { active, over } = event;
 
     if (!active || !over) return;
