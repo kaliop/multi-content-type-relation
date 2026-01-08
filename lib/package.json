@@ -1,6 +1,6 @@
 {
   "name": "multi-content-type-relation",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A multi content type relation plugin for Strapi 5.",
   "license": "MIT",
   "author": {
@@ -40,6 +40,7 @@
     "test:ts:back": "run -T tsc -p lib/server/tsconfig.json"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.0.8",
     "@dnd-kit/sortable": "^7.0.2",
     "@strapi/design-system": "^2.0.0-rc.27",
     "@strapi/icons": "^2.0.0-rc.27",

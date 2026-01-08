@@ -8,7 +8,7 @@ export default {
   },
   pluginOptions: {
     'content-manager': {
-      visible: false
+      visible: true
     },
     'content-type-builder': {
       visible: false

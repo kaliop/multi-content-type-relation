@@ -1,5 +1,6 @@
 import type { Core, UID } from '@strapi/strapi';
 import { FormattedStrapiEntry } from '../interface';
+import { getPluginConfiguration } from '../utils';
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   getMatchingContent(ctx) {
@@ -83,13 +84,18 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const entries = body.entries as FormattedStrapiEntry[];
 
     const promises = entries.map((entry) => {
+      const findOneOptions = {
+        documentId: entry.documentId,
+        populate: '*',
+        status: 'published'
+      } as any
+      if (entry.locale) {
+        findOneOptions.locale = entry.locale
+      }
+
       return strapi
         .documents(entry.uid as any)
-        .findOne({
-          documentId: entry.documentId,
-          populate: '*',
-          status: 'published'
-        })
+        .findOne(findOneOptions)
         .then((result) => {
           return {
             uid: entry.uid,
@@ -134,6 +140,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     let documentId = body.documentId as string;
     const uid = body.uid as UID.ContentType;
     const isSingleType = body.isSingleType as boolean;
+    const locale = body.locale as string;
 
     if (isSingleType) {
       const document = await strapi.documents(uid).findFirst({
@@ -151,14 +158,20 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       .findMany({
         filters: {
           target: {
-            $containsi: `${uid}##${documentId}`
+            $containsi: `${uid}##${documentId}${locale ? `####${locale}` : ''}`
           }
         }
       });
 
     const relations = await Promise.all(
       mctrRelations.map(async (relation) => {
-        const sourceDocumentId = relation.sourceDocId;
+        let sourceDocumentId = relation.sourceDocId;
+        let locale = null
+        if (sourceDocumentId.includes('####')) {
+          const [documentId, sourceLocale] = sourceDocumentId.split('####');
+          locale = sourceLocale
+          sourceDocumentId = documentId
+        }
         const sourceUid = relation.sourceUID;
 
         const target = relation.target.find((target) =>
@@ -175,11 +188,16 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
         const contentType = strapi.contentTypes[contentTypeName];
 
-        const document = await strapi.documents(sourceUid).findOne({
+        const findOneOptions = {
           documentId: sourceDocumentId,
           populate: '*',
           status: 'published'
-        });
+        } as any;
+        if (locale) {
+          findOneOptions.locale = locale
+        }
+
+        const document = await strapi.documents(sourceUid).findOne(findOneOptions);
 
         const searchableField = strapi
           .plugin('multi-content-type-relation')
@@ -198,5 +216,9 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     );
 
     return relations.filter(Boolean);
+  },
+  getConfiguration: async function () {
+    const configuration = getPluginConfiguration();
+    return configuration;
   }
 });

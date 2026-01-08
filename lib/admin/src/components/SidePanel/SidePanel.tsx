@@ -35,9 +35,13 @@ const SidePanel: React.FC<SidePanelProps> = () => {
     model: uid,
     isSingleType
   } = useContentManagerContext();
+  const currentLocale = new URLSearchParams(location.search).get(
+    'plugins[i18n][locale]'
+  ) as string;
 
   const [linkedContent, setLinkedContent] = useState<LinkedContent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [disabled, setDisabledFeature] = useState(false)
 
   useEffect(() => {
     const fetchRevertRelations = async () => {
@@ -46,14 +50,28 @@ const SidePanel: React.FC<SidePanelProps> = () => {
       const response = await post(`/${pluginId}/fetch-revert-relations`, {
         documentId,
         uid,
-        isSingleType
+        isSingleType,
+        locale: currentLocale
       });
 
       setLinkedContent(Array.isArray(response.data) ? response.data.filter(Boolean) : []);
       setLoading(false);
     };
 
-    fetchRevertRelations();
+    const fetchConfiguration = async () => {
+      const { get } = getFetchClient();
+
+      const response = await get(`/${pluginId}/get-configuration`);
+
+      if (response.data.disableRevertRelations) {
+        setDisabledFeature(true);
+        setLoading(false);
+      } else {
+        fetchRevertRelations();
+      }
+    }
+
+    fetchConfiguration();
   }, []);
 
   if (loading)
@@ -62,6 +80,12 @@ const SidePanel: React.FC<SidePanelProps> = () => {
         <Loader />
       </Box>
     );
+
+  if (disabled) {
+    return (
+      <div />
+    );
+  };
 
   return (
     <>
@@ -112,8 +136,8 @@ const SidePanel: React.FC<SidePanelProps> = () => {
                     <a
                       href={
                         content.isSingleType
-                          ? `/admin/content-manager/single-types/${content.uid}`
-                          : `/admin/content-manager/collection-types/${content.uid}/${content.documentId}`
+                          ? `/admin/content-manager/single-types/${content.uid}${currentLocale ? `?plugins[i18n][locale]=${currentLocale}` : ''}`
+                          : `/admin/content-manager/collection-types/${content.uid}/${content.documentId}${currentLocale ? `?plugins[i18n][locale]=${currentLocale}` : ''}`
                       }
                       target="_blank"
                       style={{ textDecoration: 'none' }}

@@ -36,18 +36,28 @@ export const fetchMatchingContent = async (
   };
 };
 
-export const formatToStrapiField = (entries: SelectedEntry[]) => {
+export const formatToStrapiField = (entries: SelectedEntry[], locale: string) => {
   if (entries.length === 0) return '';
 
-  return JSON.stringify(
+  const storedData = JSON.stringify(
     entries
-      .map((entry) => ({
-        uid: entry.uid,
-        documentId: entry.item.documentId,
-        MRCT: true,
-      }))
+      .map((entry) => {
+        const obj = {
+          uid: entry.uid,
+          documentId: entry.item.documentId,
+          MRCT: true,
+        } as any
+        
+        if (locale) {
+          obj.locale = locale;
+        }
+
+        return obj;
+      })
       .filter(Boolean)
   );
+
+  return storedData
 };
 
 export const validateCurrentRelations = async (

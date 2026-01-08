@@ -30,7 +30,7 @@ export const PublicationState = ({
 
   return (
     <Status
-      showBullet={false}
+      showbullet="false"
       variant={configuration.variant}
       size="S"
       width="min-content"
