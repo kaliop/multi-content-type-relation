@@ -80,6 +80,12 @@ This setting show debug log of the plugin for better understanding
 
 This setting disable relaction MCTR if needed for performances/stability concerns
 
+###### Key: `useDeepSystem`
+
+> `required:` no | `type:` Boolean | default false
+
+The default populate parameter will be *, if you pass the parameter to true, the populate parameter from https://github.com/NEDDL/strapi-v5-plugin-populate-deep/tree/main will be used.
+
 ## Submit an issue
 
 You can use github issues to raise an issue about this plugin

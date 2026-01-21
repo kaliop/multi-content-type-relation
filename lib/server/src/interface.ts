@@ -33,6 +33,7 @@ export type Configuration = {
     maxDepth: number;
   };
   debug: boolean;
+  useDeepSystem: boolean;
 };
 
 export type AnyEntity = {

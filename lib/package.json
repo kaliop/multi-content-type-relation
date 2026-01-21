@@ -44,6 +44,7 @@
     "@dnd-kit/sortable": "^7.0.2",
     "@strapi/design-system": "^2.0.0-rc.27",
     "@strapi/icons": "^2.0.0-rc.27",
+    "lodash": "^4.17.23",
     "react-intl": "^7.1.11"
   },
   "devDependencies": {

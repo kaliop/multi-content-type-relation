@@ -1,6 +1,6 @@
 import { getPluginConfiguration, log } from '../utils';
 import type { Context, StrapiResponse, AnyEntity } from '../interface';
-import { flattenObj, unflatten } from '../helpers';
+import { flattenObj, getFullPopulateObject, unflatten } from '../helpers';
 import type { UID } from '@strapi/strapi';
 
 export default async (ctx, next) => {
@@ -58,6 +58,8 @@ export default async (ctx, next) => {
   if (!ctx.body) return;
 
   const configuration = getPluginConfiguration();
+
+  console.log(configuration)
 
   const handler = ctx.state.route.handler;
   const contentTypes = Object.keys(strapi.contentTypes);
@@ -162,6 +164,14 @@ const hydrateMRCT = async (
     if (locale) {
       options.locale = locale;
     }
+
+    if (configuration.useDeepSystem) {
+      const modelObject = getFullPopulateObject(uid, 5, [])
+
+      console.log(JSON.stringify(modelObject.populate, null, 2))
+      options.populate = (modelObject as any).populate
+    }
+
     const promise = strapi
       .documents(uid as any)
       .findOne(options)

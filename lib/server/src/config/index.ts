@@ -6,6 +6,8 @@ export default {
         maxDepth: 1,
       },
       debug: false,
+      useDeepSystem: false,
+      disableRevertRelations: false
     };
   },
   validator(config) {
@@ -23,6 +25,14 @@ export default {
 
     if (typeof config.debug !== 'boolean') {
       throw new Error('Debug must be a boolean');
+    }
+
+    if (typeof config.useDeepSystem !== 'boolean') {
+      throw new Error('useDeepSystem must be a boolean');
+    }
+
+    if (typeof config.disableRevertRelations !== 'boolean') {
+      throw new Error('disableRevertRelations must be a boolean');
     }
   },
 };
