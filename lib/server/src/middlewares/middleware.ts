@@ -59,8 +59,6 @@ export default async (ctx, next) => {
 
   const configuration = getPluginConfiguration();
 
-  console.log(configuration)
-
   const handler = ctx.state.route.handler;
   const contentTypes = Object.keys(strapi.contentTypes);
 
@@ -168,7 +166,6 @@ const hydrateMRCT = async (
     if (configuration.useDeepSystem) {
       const modelObject = getFullPopulateObject(uid, 5, [])
 
-      console.log(JSON.stringify(modelObject.populate, null, 2))
       options.populate = (modelObject as any).populate
     }
 
