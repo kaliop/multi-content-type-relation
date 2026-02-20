@@ -169,42 +169,49 @@ const hydrateMRCT = async (
       options.populate = (modelObject as any).populate
     }
 
-    const promise = strapi
-      .documents(uid as any)
-      .findOne(options)
-      .then(async (response) => {
-        if (!response) return { uid, response };
+    let promise: Promise<any> = null;
+    
+    // Check MCTR fields that contains UID that no longer exists
+    if (!strapi.contentTypes[uid]) {
+      promise = Promise.resolve({ uid, response: null });
+    } else {
+      promise = strapi
+        .documents(uid as any)
+        .findOne(options)
+        .then(async (response) => {
+          if (!response) return { uid, response };
 
-        if (
-          configuration.recursive.enabled &&
-          currentDepth < configuration.recursive.maxDepth
-        ) {
-          // Entity service serve the content flattened, so we need to rebuild the API format for the hydrate recursion
-          const hydratedResponse = await hydrateMRCT(
-            response as unknown as AnyEntity, //TODO: fix me
-            currentDepth + 1,
-            context
-          );
+          if (
+            configuration.recursive.enabled &&
+            currentDepth < configuration.recursive.maxDepth
+          ) {
+            // Entity service serve the content flattened, so we need to rebuild the API format for the hydrate recursion
+            const hydratedResponse = await hydrateMRCT(
+              response as unknown as AnyEntity, //TODO: fix me
+              currentDepth + 1,
+              context
+            );
 
-          return {
-            uid,
-            response: {
-              documentId: response.documentId,
-              ...hydratedResponse
-            }
-          };
-        } else {
-          return {
-            uid,
-            response: {
-              documentId: response.documentId,
-              ...response
-            }
-          };
-        }
-      });
+            return {
+              uid,
+              response: {
+                documentId: response.documentId,
+                ...hydratedResponse
+              }
+            };
+          } else {
+            return {
+              uid,
+              response: {
+                documentId: response.documentId,
+                ...response
+              }
+            };
+          }
+        });
 
-    promises.push(promise);
+      promises.push(promise);
+    }
   }
 
   const linkedEntries: any[] = await Promise.all(promises);

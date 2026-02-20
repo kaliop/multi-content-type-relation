@@ -84,6 +84,10 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const entries = body.entries as FormattedStrapiEntry[];
 
     const promises = entries.map((entry) => {
+      if (!strapi.contentTypes[entry.uid] || entry.uid === "api::village-home.village-home") {
+        return Promise.resolve({ uid: entry.uid, result: null });
+      }
+
       const findOneOptions = {
         documentId: entry.documentId,
         populate: '*',
@@ -107,6 +111,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const responses = await Promise.all(promises);
 
     return responses
+      .filter((response) => Boolean(response.result))
       .map((response) => {
         return {
           displayName: contentTypes[response.uid].info.displayName,
