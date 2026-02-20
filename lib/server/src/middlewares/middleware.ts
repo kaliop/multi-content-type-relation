@@ -163,18 +163,17 @@ const hydrateMRCT = async (
       options.locale = locale;
     }
 
-    if (configuration.useDeepSystem) {
-      const modelObject = getFullPopulateObject(uid, 5, [])
-
-      options.populate = (modelObject as any).populate
-    }
-
     let promise: Promise<any> = null;
-    
     // Check MCTR fields that contains UID that no longer exists
     if (!strapi.contentTypes[uid]) {
       promise = Promise.resolve({ uid, response: null });
     } else {
+      if (configuration.useDeepSystem) {
+        const modelObject = getFullPopulateObject(uid, 5, [])
+  
+        options.populate = (modelObject as any).populate
+      }
+
       promise = strapi
         .documents(uid as any)
         .findOne(options)
