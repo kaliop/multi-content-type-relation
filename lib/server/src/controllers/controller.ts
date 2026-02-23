@@ -84,7 +84,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const entries = body.entries as FormattedStrapiEntry[];
 
     const promises = entries.map((entry) => {
-      if (!strapi.contentTypes[entry.uid] || entry.uid === "api::village-home.village-home") {
+      if (!strapi.contentTypes[entry.uid]) {
         return Promise.resolve({ uid: entry.uid, result: null });
       }
 
