@@ -49,4 +49,5 @@ export type Context = {
   configuration: Configuration;
   publicationState: 'live' | 'preview';
   skipDeep: boolean;
+  populatePaths: string[];
 };

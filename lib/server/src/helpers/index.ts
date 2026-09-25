@@ -86,3 +86,59 @@ export const getFullPopulateObject = (modelUid, maxDepth = 20, ignore) => {
   }
   return isEmpty(populate) ? true : { populate };
 };
+const getAttributeTargetUid = (attribute) => {
+  if (attribute.type === "component") return attribute.component;
+  if (attribute.type === "relation") return attribute.target;
+  if (attribute.type === "media") return "plugin::upload.file";
+  return undefined;
+};
+
+const buildPathsPopulate = (modelUid, paths: string[][], isRoot) => {
+  const model = strapi.getModel(modelUid);
+  if (!model) return {};
+
+  const attributes = getModelPopulationAttributes(model);
+  const fields: string[] = [];
+  const populate = {};
+  const pathsByKey = new Map<string, string[][]>();
+
+  for (const [key, ...rest] of paths) {
+    if (!pathsByKey.has(key)) pathsByKey.set(key, []);
+    pathsByKey.get(key).push(rest);
+  }
+
+  for (const [key, subPaths] of pathsByKey) {
+    const attribute = attributes[key];
+    if (!attribute) continue;
+
+    if (attribute.type === "dynamiczone") {
+      populate[key] = true;
+      continue;
+    }
+
+    const targetUid = getAttributeTargetUid(attribute);
+
+    if (!targetUid) {
+      if (!isRoot && attribute.type !== "relation") fields.push(key);
+      continue;
+    }
+
+    if (subPaths.some((subPath) => subPath.length === 0)) {
+      populate[key] = true;
+      continue;
+    }
+
+    const nested = buildPathsPopulate(targetUid, subPaths, false);
+    populate[key] = isEmpty(nested) ? true : nested;
+  }
+
+  return {
+    ...(fields.length ? { fields } : {}),
+    ...(isEmpty(populate) ? {} : { populate }),
+  };
+};
+
+export const getPathsPopulateObject = (modelUid, paths: string[]) => {
+  const splitPaths = paths.map((path) => path.split(".").filter(Boolean)).filter((path) => path.length);
+  return (buildPathsPopulate(modelUid, splitPaths, true) as { populate?: object }).populate;
+};

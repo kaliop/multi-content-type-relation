@@ -1,6 +1,6 @@
 import { getPluginConfiguration, log } from '../utils';
 import type { Context, StrapiResponse, AnyEntity } from '../interface';
-import { flattenObj, getFullPopulateObject, unflatten } from '../helpers';
+import { flattenObj, getFullPopulateObject, getPathsPopulateObject, unflatten } from '../helpers';
 import type { UID } from '@strapi/strapi';
 
 export default async (ctx, next) => {
@@ -81,10 +81,13 @@ export default async (ctx, next) => {
   // Allow only findOne/findMany for native contentypes that have api::
   if (!validHandler) return;
 
+  const skipDeep = ctx.request.query?.mctrSkipDeep === 'true';
+
   const context = {
     configuration,
     publicationState: ctx.request.query?.['publicationState'] ?? 'live',
-    skipDeep: ctx.request.query?.mctrSkipDeep === 'true'
+    skipDeep,
+    populatePaths: skipDeep ? parsePopulatePaths(ctx.request.query?.mctrPopulate) : []
   };
 
   if (ctx.body.error || !ctx.body?.data) return;
@@ -93,6 +96,14 @@ export default async (ctx, next) => {
 
   ctx.body.data = hydratedData;
 };
+
+const parsePopulatePaths = (value: unknown): string[] =>
+  [value]
+    .flat()
+    .filter((path): path is string => typeof path === 'string')
+    .flatMap((path) => path.split(','))
+    .map((path) => path.trim())
+    .filter(Boolean);
 
 const augmentMRCT = async (
   strapiResponse: StrapiResponse,
@@ -172,6 +183,9 @@ const hydrateMRCT = async (
         options.populate = configuration.useDeepSystem
           ? (getFullPopulateObject(uid, 5, []) as any).populate
           : '*';
+      } else if (context.populatePaths.length) {
+        const populate = getPathsPopulateObject(uid, context.populatePaths);
+        if (populate) options.populate = populate;
       }
 
       const findOne = (): Promise<any> => strapi.documents(uid as any).findOne(options);

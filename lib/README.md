@@ -95,7 +95,7 @@ Query parameters you can add to any public API `GET` request (`findOne` / `findM
 > `type:` `'true'` | default: not set
 
 ```
-GET /api/villages/:documentId?pLevel&mctrSkipDeep=true
+GET /api/[contentType]/:documentId?pLevel&mctrSkipDeep=true
 ```
 
 When set to `true`, linked contents are fetched **without any populate**: only their own fields are returned (no components, dynamic zones, media or relations). Nested MCTR fields are returned as their raw JSON string.
@@ -105,6 +105,26 @@ It also bypasses [strapi-v5-plugin-populate-deep](https://github.com/NEDDL/strap
 Use it when the consumer only needs the linked contents' first-level fields (title, slug, …), e.g. navigation or menus. It greatly reduces the number of SQL queries and the response size.
 
 > Note: only the exact value `true` is taken into account. `mctrSkipDeep`, `mctrSkipDeep=1` or `mctrSkipDeep=false` keep the default behavior (`useDeepSystem` / `*`).
+
+###### Key: `mctrPopulate`
+
+> `type:` `string` (comma-separated) or `string[]` | default: not set | **only used with `mctrSkipDeep=true`**
+
+```
+GET /api/[contentType]/:documentId?pLevel&mctrSkipDeep=true&mctrPopulate=seo.h1,cover
+GET /api/[contentType]/:documentId?pLevel&mctrSkipDeep=true&mctrPopulate[0]=seo.h1&mctrPopulate[1]=cover
+```
+
+Populates only the given dot-notation paths on linked contents, on top of their own first-level fields.
+
+- `seo.h1`: populates the `seo` component with only its `h1` field
+- `seo`: populates the `seo` component with all its own fields
+- `seo.image.url`: goes through components, relations and media (`populate` + `fields` at each level)
+- dynamic zones are populated on their first level only (`blocks.foo` behaves like `blocks`)
+
+Paths are resolved against each linked content's schema: a path that doesn't exist on a content type is ignored for it, so the same parameter can be used whatever the linked content types are.
+
+Without `mctrSkipDeep=true`, this parameter is ignored.
 
 ## Submit an issue
 
