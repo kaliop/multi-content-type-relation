@@ -83,10 +83,10 @@ export default async (ctx, next) => {
 
   const context = {
     configuration,
-    publicationState: ctx.request.query?.['publicationState'] ?? 'live'
+    publicationState: ctx.request.query?.['publicationState'] ?? 'live',
+    skipDeep: ctx.request.query?.mctrSkipDeep === 'true'
   };
 
-  log(`[MIDDLEWARE] Context Body: ${JSON.stringify(ctx.body, null, 2)}`);
   if (ctx.body.error || !ctx.body?.data) return;
 
   const hydratedData = await augmentMRCT(ctx.body, 1, context);
@@ -158,7 +158,7 @@ const hydrateMRCT = async (
   const promises: Promise<any>[] = [];
   for (const item of Array.from(contentsToFetch)) {
     const [uid, documentId, locale] = item.split('####');
-    const options = { documentId, populate: '*', status: 'published' } as any;
+    const options = { documentId, status: 'published' } as any;
     if (locale) {
       options.locale = locale;
     }
@@ -168,15 +168,17 @@ const hydrateMRCT = async (
     if (!strapi.contentTypes[uid]) {
       promise = Promise.resolve({ uid, response: null });
     } else {
-      if (configuration.useDeepSystem) {
-        const modelObject = getFullPopulateObject(uid, 5, [])
-  
-        options.populate = (modelObject as any).populate
+      if (!context.skipDeep) {
+        options.populate = configuration.useDeepSystem
+          ? (getFullPopulateObject(uid, 5, []) as any).populate
+          : '*';
       }
 
-      promise = strapi
-        .documents(uid as any)
-        .findOne(options)
+      const findOne = (): Promise<any> => strapi.documents(uid as any).findOne(options);
+
+      promise = (context.skipDeep
+        ? (strapi.requestContext.run(undefined, findOne as any) as Promise<any>)
+        : findOne())
         .then(async (response) => {
           if (!response) return { uid, response };
 

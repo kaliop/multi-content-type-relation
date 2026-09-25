@@ -86,6 +86,26 @@ This setting disable relaction MCTR if needed for performances/stability concern
 
 The default populate parameter will be *, if you pass the parameter to true, the populate parameter from https://github.com/NEDDL/strapi-v5-plugin-populate-deep/tree/main will be used.
 
+## Query parameters
+
+Query parameters you can add to any public API `GET` request (`findOne` / `findMany`) to change how MCTR fields are hydrated for that request only.
+
+###### Key: `mctrSkipDeep`
+
+> `type:` `'true'` | default: not set
+
+```
+GET /api/villages/:documentId?pLevel&mctrSkipDeep=true
+```
+
+When set to `true`, linked contents are fetched **without any populate**: only their own fields are returned (no components, dynamic zones, media or relations). Nested MCTR fields are returned as their raw JSON string.
+
+It also bypasses [strapi-v5-plugin-populate-deep](https://github.com/NEDDL/strapi-v5-plugin-populate-deep/tree/main) for linked contents: that plugin applies the request's `pLevel` to every `findOne` / `findMany` run during the request, including the ones made by MCTR. With `mctrSkipDeep=true`, `pLevel` still populates the main content, but not the linked ones.
+
+Use it when the consumer only needs the linked contents' first-level fields (title, slug, …), e.g. navigation or menus. It greatly reduces the number of SQL queries and the response size.
+
+> Note: only the exact value `true` is taken into account. `mctrSkipDeep`, `mctrSkipDeep=1` or `mctrSkipDeep=false` keep the default behavior (`useDeepSystem` / `*`).
+
 ## Submit an issue
 
 You can use github issues to raise an issue about this plugin
