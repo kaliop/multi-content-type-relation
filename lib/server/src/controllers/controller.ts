@@ -101,6 +101,19 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         .documents(entry.uid as any)
         .findOne(findOneOptions)
         .then((result) => {
+          
+          if (!result) {
+            // Try with draft mode
+            return strapi.documents(entry.uid as any).findFirst({ 
+              status: 'draft'
+            }).then((result) => {
+              return {
+                uid: entry.uid,
+                result
+              };
+            });
+          }
+
           return {
             uid: entry.uid,
             result

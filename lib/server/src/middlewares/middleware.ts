@@ -5,6 +5,7 @@ import {
   flattenObj,
   getComponentsPopulate,
   getFullPopulateObject,
+  getPathsPopulateObject,
   unflatten
 } from '../helpers';
 import type { UID } from '@strapi/strapi';
@@ -87,18 +88,29 @@ export default async (ctx, next) => {
   // Allow only findOne/findMany for native contentypes that have api::
   if (!validHandler) return;
 
+  const skipDeep = ctx.request.query?.mctrSkipDeep === 'true';
+
   const context = {
     configuration,
-    publicationState: ctx.request.query?.['publicationState'] ?? 'live'
+    publicationState: ctx.request.query?.['publicationState'] ?? 'live',
+    skipDeep,
+    populatePaths: skipDeep ? parsePopulatePaths(ctx.request.query?.mctrPopulate) : []
   };
 
-  log(`[MIDDLEWARE] Context Body: ${JSON.stringify(ctx.body, null, 2)}`);
   if (ctx.body.error || !ctx.body?.data) return;
 
   const hydratedData = await augmentMRCT(ctx.body, 1, context);
 
   ctx.body.data = hydratedData;
 };
+
+const parsePopulatePaths = (value: unknown): string[] =>
+  [value]
+    .flat()
+    .filter((path): path is string => typeof path === 'string')
+    .flatMap((path) => path.split(','))
+    .map((path) => path.trim())
+    .filter(Boolean);
 
 const augmentMRCT = async (
   strapiResponse: StrapiResponse,
@@ -164,7 +176,7 @@ const hydrateMRCT = async (
   const promises: Promise<any>[] = [];
   for (const item of Array.from(contentsToFetch)) {
     const [uid, documentId, locale] = item.split('####');
-    const options = { documentId, populate: '*', status: 'published' } as any;
+    const options = { documentId, status: 'published' } as any;
     if (locale) {
       options.locale = locale;
     }
@@ -174,15 +186,20 @@ const hydrateMRCT = async (
     if (!strapi.contentTypes[uid]) {
       promise = Promise.resolve({ uid, response: null });
     } else {
-      if (configuration.useDeepSystem) {
-        const modelObject = getFullPopulateObject(uid, 5, [])
-  
-        options.populate = (modelObject as any).populate
+      if (!context.skipDeep) {
+        options.populate = configuration.useDeepSystem
+          ? (getFullPopulateObject(uid, 5, []) as any).populate
+          : '*';
+      } else if (context.populatePaths.length) {
+        const populate = getPathsPopulateObject(uid, context.populatePaths);
+        if (populate) options.populate = populate;
       }
 
-      promise = strapi
-        .documents(uid as any)
-        .findOne(options)
+      const findOne = (): Promise<any> => strapi.documents(uid as any).findOne(options);
+
+      promise = (context.skipDeep
+        ? (strapi.requestContext.run(undefined, findOne as any) as Promise<any>)
+        : findOne())
         .then(async (response) => {
           if (!response) return { uid, response };
 
