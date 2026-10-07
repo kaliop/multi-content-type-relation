@@ -1,6 +1,13 @@
 import { getPluginConfiguration, log } from '../utils';
 import type { Context, StrapiResponse, AnyEntity } from '../interface';
-import { flattenObj, getFullPopulateObject, getPathsPopulateObject, unflatten } from '../helpers';
+import {
+  collectMctrValues,
+  flattenObj,
+  getComponentsPopulate,
+  getFullPopulateObject,
+  getPathsPopulateObject,
+  unflatten
+} from '../helpers';
 import type { UID } from '@strapi/strapi';
 
 export default async (ctx, next) => {
@@ -303,18 +310,6 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType, locale
 
   const contentType = strapi.contentTypes[contentTypeKey];
 
-  // TODO: recursive find the mctr relation
-  const mctrFields = Object.keys(contentType.attributes).filter(
-    (field) =>
-      contentType.attributes[field].customField ===
-      'plugin::multi-content-type-relation.multi-content-type-relation'
-  );
-
-  if (mctrFields.length === 0) {
-    log(`[SYNC] No MCTR fields found for ${documentId}, discarding sync`);
-    return
-  }
-
   let mctrRelationDocumentId = documentId;
   if (locale) {
     mctrRelationDocumentId = `${documentId}####${locale}`;
@@ -349,30 +344,24 @@ const syncMctrRelation = async (documentId: string, uid: UID.ContentType, locale
 
     log(`[SYNC] Find document ${documentId}`);
     const options = {
-      documentId 
+      documentId,
+      populate: getComponentsPopulate(contentType.attributes)
     } as any;
     if (locale) {
       options.locale = locale
     }
     const document = await strapi.documents(uid).findOne(options);
 
-    log(`[SYNC] MCTR fields for ${documentId}: ${JSON.stringify(mctrFields, null, 2)}`);
-
     const targetJSON = [];
 
-    // Create the mctr relation to have a sync
-    mctrFields.forEach(async (field) => {
-    const fieldValue = document[field];
-    if (!fieldValue) return;
-
-    try {
-      const mctrField = JSON.parse(fieldValue);
-      mctrField.forEach((item) => {
-        targetJSON.push(`${field}##${item.uid}##${item.documentId}${locale ? `####${locale}` : ''}`);
-      });
-    } catch (e) {
-      log(`[SYNC] Error parsing field ${field} ${fieldValue}`);
-    }
+    collectMctrValues(contentType.attributes, document).forEach(([field, fieldValue]) => {
+      try {
+        JSON.parse(fieldValue).forEach((item) => {
+          targetJSON.push(`${field}##${item.uid}##${item.documentId}${locale ? `####${locale}` : ''}`);
+        });
+      } catch (e) {
+        log(`[SYNC] Error parsing field ${field} ${fieldValue}`);
+      }
     });
 
     log(`[SYNC] Target JSON for ${documentId}: ${JSON.stringify(targetJSON, null, 2)}`);
