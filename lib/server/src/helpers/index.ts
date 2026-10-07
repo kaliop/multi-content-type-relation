@@ -45,6 +45,60 @@ const getModelPopulationAttributes = (model) => {
   return model.attributes;
 };
 
+const MCTR_CUSTOM_FIELD =
+  'plugin::multi-content-type-relation.multi-content-type-relation';
+
+export const getComponentsPopulate = (attributes: Record<string, any>) => {
+  const populate = {};
+
+  for (const [key, attribute] of Object.entries(attributes)) {
+    if (attribute.type === 'component') {
+      populate[key] = toPopulate(strapi.components[attribute.component].attributes);
+    } else if (attribute.type === 'dynamiczone') {
+      populate[key] = {
+        on: Object.fromEntries(
+          attribute.components.map((uid: string) => [
+            uid,
+            toPopulate(strapi.components[uid].attributes)
+          ])
+        )
+      };
+    }
+  }
+
+  return populate;
+};
+
+const toPopulate = (attributes: Record<string, any>) => {
+  const nested = getComponentsPopulate(attributes);
+  return isEmpty(nested) ? true : { populate: nested };
+};
+
+export const collectMctrValues = (
+  attributes: Record<string, any>,
+  data: any
+): [field: string, value: string][] =>
+  Object.entries(attributes).flatMap(([key, attribute]) => {
+    const value = data?.[key];
+    if (!value) return [];
+
+    if (attribute.customField === MCTR_CUSTOM_FIELD) return [[key, value]];
+
+    if (attribute.type === 'component') {
+      return [value].flat().flatMap((entry) =>
+        collectMctrValues(strapi.components[attribute.component].attributes, entry)
+      );
+    }
+
+    if (attribute.type === 'dynamiczone') {
+      return value.flatMap((entry) =>
+        collectMctrValues(strapi.components[entry.__component].attributes, entry)
+      );
+    }
+
+    return [];
+  });
+
 export const getFullPopulateObject = (modelUid, maxDepth = 20, ignore) => {
   if (maxDepth <= 1) {
     return true;
